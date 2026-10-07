@@ -179,28 +179,28 @@ select{background:var(--card);border:1px solid var(--border);color:var(--text);b
 <div id="page-categorias" class="page">
   <div class="page-header">
     <h2>Vendas por Tipo de Evento</h2>
-    <p>Jan–Ago 2026 · Caixa (recebimentos)</p>
+    <p>Jan–Set 2026 · Caixa (recebimentos)</p>
   </div>
   <div class="kpi-grid">
     <div class="kpi" style="--accent:#3b82f6">
       <div class="kpi-label">⚪🔵 Social</div>
-      <div class="kpi-value">R$ 1,27M</div>
-      <div class="kpi-sub">54,6% do total</div>
+      <div class="kpi-value">R$ 1,45M</div>
+      <div class="kpi-sub">56,4% do total</div>
     </div>
     <div class="kpi" style="--accent:#f59e0b">
       <div class="kpi-label">🟡 Formatura</div>
-      <div class="kpi-value">R$ 1,03M</div>
-      <div class="kpi-sub">44,3% do total</div>
+      <div class="kpi-value">R$ 1,09M</div>
+      <div class="kpi-sub">42,5% do total</div>
     </div>
     <div class="kpi" style="--accent:#22c55e">
       <div class="kpi-label">🟢 Locação</div>
       <div class="kpi-value">R$ 26.400</div>
-      <div class="kpi-sub">1,1% do total</div>
+      <div class="kpi-sub">1,0% do total</div>
     </div>
     <div class="kpi" style="--accent:#a855f7">
       <div class="kpi-label">Total caixa</div>
-      <div class="kpi-value">R$ 2,33M</div>
-      <div class="kpi-sub">Jan–Ago 2026</div>
+      <div class="kpi-value">R$ 2,57M</div>
+      <div class="kpi-sub">Jan–Set 2026</div>
     </div>
   </div>
   <div class="card">
@@ -214,7 +214,7 @@ select{background:var(--card);border:1px solid var(--border);color:var(--text);b
   </div>
   <div class="grid-2">
     <div class="card">
-      <div class="card-title">Mix acumulado Jan–Ago</div>
+      <div class="card-title">Mix acumulado Jan–Set</div>
       <div class="chart-wrap"><canvas id="c8"></canvas></div>
     </div>
     <div class="card">
@@ -443,11 +443,11 @@ function renderPct(){
 renderPct();
 
 /* ============ ABA 3: CATEGORIAS ============ */
-const mesesCat=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago'];
+const mesesCat=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set'];
 const catData={
-  social:   [110000,172000,138972.5,170010,192050,116050,146290,227368],
-  formatura:[228664,235000,233682,25800,253800,22200,0,34780],
-  locacao:  [0,0,0,21000,0,0,0,5400],
+  social:   [110000,172000,138972.5,170010,192050,116050,146290,227368,176500],
+  formatura:[228664,235000,233682,25800,253800,22200,0,34780,58050],
+  locacao:  [0,0,0,21000,0,0,0,5400,0],
 };
 const totaisCat=mesesCat.map((_,i)=>catData.social[i]+catData.formatura[i]+catData.locacao[i]);
 
