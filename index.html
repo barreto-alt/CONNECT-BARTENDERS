@@ -244,7 +244,7 @@ select{background:var(--card);border:1px solid var(--border);color:var(--text);b
   <div class="kpi-grid">
     <div class="kpi" style="--accent:#22c55e"><div class="kpi-label">Melhor ano</div><div class="kpi-value pos">2025</div><div class="kpi-sub">R$ 3.386.270</div></div>
     <div class="kpi" style="--accent:#3b82f6"><div class="kpi-label">Crescimento 2024→2025</div><div class="kpi-value pos">+56,8%</div><div class="kpi-sub">+R$ 1,23M no ano</div></div>
-    <div class="kpi" style="--accent:#a855f7"><div class="kpi-label">2026 Jan–Set (competência)</div><div class="kpi-value">R$ 2,57M</div><div class="kpi-sub">Em andamento</div></div>
+    <div class="kpi" style="--accent:#a855f7"><div class="kpi-label">2026 Jan–Set (caixa)</div><div class="kpi-value">R$ 2,59M</div><div class="kpi-sub">Em andamento</div></div>
     <div class="kpi" style="--accent:#f59e0b"><div class="kpi-label">Ticket médio 2025</div><div class="kpi-value">R$ 10.853</div><div class="kpi-sub">312 eventos · +626% vs 2015</div></div>
   </div>
   <div class="card">
@@ -277,20 +277,20 @@ select{background:var(--card);border:1px solid var(--border);color:var(--text);b
 <div id="page-contas" class="page">
   <div class="page-header">
     <h2>Contas & Saldos</h2>
-    <p>Posição atual · Set/2026</p>
+    <p>Posição atual · Out/2026</p>
   </div>
-  <div class="section-label" style="margin-top:0">Contas correntes</div>
+  <div class="section-label" style="margin-top:0">Contas correntes — Connect Bartenders</div>
   <div class="contas-grid">
     <div class="conta-card">
       <div class="conta-icon" style="background:rgba(245,158,11,.15)">🏦</div>
       <div class="conta-banco">Banco do Brasil</div>
-      <div class="conta-valor">R$ 20.000</div>
+      <div class="conta-valor">R$ 10.170</div>
       <div class="conta-tipo">Conta corrente</div>
     </div>
     <div class="conta-card">
       <div class="conta-icon" style="background:rgba(59,130,246,.15)">🏦</div>
-      <div class="conta-banco">BTG</div>
-      <div class="conta-valor">R$ 33.000</div>
+      <div class="conta-banco">BTG Empresarial</div>
+      <div class="conta-valor">R$ 30.400</div>
       <div class="conta-tipo">Conta corrente</div>
     </div>
   </div>
@@ -298,25 +298,28 @@ select{background:var(--card);border:1px solid var(--border);color:var(--text);b
   <div class="contas-grid">
     <div class="conta-card">
       <div class="conta-icon" style="background:rgba(34,197,94,.15)">📈</div>
-      <div class="conta-banco">Investimento 1</div>
-      <div class="conta-valor" style="color:var(--green)">R$ 110.000</div>
-      <div class="conta-tipo">1M aplicado</div>
+      <div class="conta-banco">XP Investimentos</div>
+      <div class="conta-valor" style="color:var(--green)">R$ 342.200</div>
+      <div class="conta-tipo">Aplicação</div>
     </div>
+  </div>
+  <div class="section-label">Conta pessoal</div>
+  <div class="contas-grid">
     <div class="conta-card">
-      <div class="conta-icon" style="background:rgba(34,197,94,.15)">📈</div>
-      <div class="conta-banco">Investimento 2</div>
-      <div class="conta-valor" style="color:var(--green)">R$ 330.000</div>
-      <div class="conta-tipo">1M aplicado</div>
+      <div class="conta-icon" style="background:rgba(168,85,247,.15)">👤</div>
+      <div class="conta-banco">BTG Pessoal</div>
+      <div class="conta-valor">R$ 1.120</div>
+      <div class="conta-tipo">Conta corrente</div>
     </div>
   </div>
   <div class="total-box">
     <div>
       <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Total geral</div>
-      <div style="font-size:28px;font-weight:700">R$ 493.000</div>
+      <div style="font-size:28px;font-weight:700">R$ 383.890</div>
     </div>
     <div style="display:flex;gap:24px;flex-wrap:wrap">
-      <div style="text-align:right"><div style="font-size:11px;color:var(--muted)">Contas correntes</div><div style="font-size:16px;font-weight:700">R$ 53.000</div></div>
-      <div style="text-align:right"><div style="font-size:11px;color:var(--muted)">Investimentos</div><div style="font-size:16px;font-weight:700;color:var(--green)">R$ 440.000</div></div>
+      <div style="text-align:right"><div style="font-size:11px;color:var(--muted)">Correntes</div><div style="font-size:16px;font-weight:700">R$ 41.690</div></div>
+      <div style="text-align:right"><div style="font-size:11px;color:var(--muted)">Investimentos</div><div style="font-size:16px;font-weight:700;color:var(--green)">R$ 342.200</div></div>
     </div>
   </div>
 </div>
@@ -506,9 +509,9 @@ const vendasV={
   2023:[117303,95205,130530,185073,131837,91710,118710,178406,124720,131794,288199,225910],
   2024:[159305,109000,117838,228724,228049,102175,171503,103675,150760,160830,329636,297623],
   2025:[293239,401077,299385,156303,272741,286015,292422,105040,192622,168100,457838,461488],
-  2026:[338664,407000,372655,216810,445850,138250,146290,267548,238174,0,0,0],
+  2026:[338664,407000,372655,216810,445850,138250,146290,267548,259825,0,0,0],
 };
-const totaisV={2015:503418,2016:637697,2017:703642.75,2018:793126,2019:808977,2020:577848,2021:979357,2022:1570923,2023:1819397,2024:2159118,2025:3386270,2026:2571241};
+const totaisV={2015:503418,2016:637697,2017:703642.75,2018:793126,2019:808977,2020:577848,2021:979357,2022:1570923,2023:1819397,2024:2159118,2025:3386270,2026:2592892};
 const eventosV={2015:337,2016:331,2017:248,2018:277,2019:292,2020:102,2021:387,2022:357,2023:326,2024:320,2025:312,2026:0};
 const ticketsV={2015:1493.82,2016:1926.57,2017:2837.26,2018:2863.70,2019:2770.46,2020:5665.17,2021:2530.63,2022:4400.34,2023:5580.97,2024:6747.24,2025:10853,2026:0};
 const covidY=[2020,2021];
