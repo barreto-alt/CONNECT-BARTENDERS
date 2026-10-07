@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Completo — Bartender</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0f1117;--card:#1a1d2e;--border:#2a2d3e;--text:#e2e8f0;--muted:#8892a4;
+--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--yellow:#f59e0b;--purple:#a855f7;--teal:#14b8a6;--orange:#f97316;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+
+.nav{background:#111422;border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:0;position:sticky;top:0;z-index:100;flex-wrap:wrap}
+.nav-brand{font-weight:700;font-size:1rem;color:var(--text);padding:14px 20px 14px 0;border-right:1px solid var(--border);margin-right:8px;white-space:nowrap}
+.nav-tab{padding:14px 16px;font-size:.82rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap;background:none;border-left:none;border-right:none;border-top:none}
+.nav-tab:hover{color:var(--text)}
+.nav-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+.page{display:none;padding:24px}
+.page.active{display:block}
+.page-header{margin-bottom:22px}
+.page-header h2{font-size:1.2rem;font-weight:700;margin-bottom:3px}
+.page-header p{color:var(--muted);font-size:.82rem}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px 17px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent,var(--blue))}
+.kpi-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:7px}
+.kpi-value{font-size:1.4rem;font-weight:700;line-height:1}
+.kpi-sub{font-size:.72rem;color:var(--muted);margin-top:5px}
+.pos{color:var(--green)} .neg{color:var(--red)}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:17px;margin-bottom:14px}
+.card-title{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:13px}
+.chart-wrap{position:relative;height:240px}
+.chart-wrap.tall{height:290px}
+.chart-wrap.sm{height:200px}
+
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th{color:var(--muted);text-transform:uppercase;font-size:.67rem;letter-spacing:.05em;padding:7px 9px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{padding:7px 9px;text-align:right;border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap}
+td:first-child{font-weight:600}
+tr:hover td{background:rgba(255,255,255,.03)}
+tr.tot td{border-top:1px solid var(--border);font-weight:700;background:rgba(255,255,255,.03)}
+tr.med td{color:var(--muted);font-style:italic}
+tr.avg td{font-weight:700;border-top:2px solid rgba(255,255,255,.18);border-bottom:2px solid rgba(255,255,255,.18)}
+
+.pill{display:inline-block;padding:2px 6px;border-radius:4px;font-weight:600;font-size:11px;min-width:40px}
+.yr-badge{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.yr{font-size:9px;color:var(--muted);margin-left:2px}
+.tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;margin-left:4px;vertical-align:middle}
+.tag-covid{background:rgba(245,158,11,.2);color:var(--yellow)}
+.tag-rec{background:rgba(34,197,94,.15);color:var(--green)}
+.tag-cur{background:rgba(59,130,246,.2);color:var(--blue)}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:13px;align-items:center}
+.filters label{font-size:12px;color:var(--muted)}
+select{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;font-size:12px;cursor:pointer}
+
+.contas-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:18px}
+.conta-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
+.conta-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:16px}
+.conta-banco{font-size:12px;color:var(--muted);margin-bottom:4px}
+.conta-valor{font-size:22px;font-weight:700}
+.conta-tipo{font-size:11px;color:var(--muted);margin-top:3px}
+.total-box{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.section-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;margin-top:18px}
+
+.tr-y24 td{background:rgba(168,85,247,.06)} .tr-y24 td:first-child{background:#1c1728}
+.tr-y25 td{background:rgba(59,130,246,.06)} .tr-y25 td:first-child{background:#161e2e}
+.tr-y26 td{background:rgba(245,158,11,.06)} .tr-y26 td:first-child{background:#201d14}
+.tr-y24.avg td{background:rgba(168,85,247,.14)} .tr-y24.avg td:first-child{background:#241930}
+.tr-y25.avg td{background:rgba(59,130,246,.14)} .tr-y25.avg td:first-child{background:#1a2438}
+.tr-y26.avg td{background:rgba(245,158,11,.14)} .tr-y26.avg td:first-child{background:#26221a}
+
+.legend-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;align-items:center}
+.legend-item{display:flex;align-items:center;gap:6px}
+.legend-dot{width:10px;height:10px;border-radius:3px}
+
+@media(max-width:700px){.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">Bartender</div>
+  <button class="nav-tab active" onclick="showPage('resultados',this)">Resultados 2026</button>
+  <button class="nav-tab" onclick="showPage('percentuais',this)">% Categorias</button>
+  <button class="nav-tab" onclick="showPage('categorias',this)">Vendas por Tipo</button>
+  <button class="nav-tab" onclick="showPage('vendas',this)">Histórico Vendas</button>
+  <button class="nav-tab" onclick="showPage('contas',this)">Contas</button>
+</nav>
+
+<!-- ===================== ABA 1: RESULTADOS ===================== -->
+<div id="page-resultados" class="page active">
+  <div class="page-header">
+    <h2>Indicador de Resultados</h2>
+    <p>Jan–Set 2026 · Atualizado em 07/10/2026</p>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi" style="--accent:#3b82f6"><div class="kpi-label">Receita Total</div><div class="kpi-value">R$ 2,44M</div><div class="kpi-sub">Jan–Set 2026</div></div>
+    <div class="kpi" style="--accent:#22c55e"><div class="kpi-label">Margem de Contribuição</div><div class="kpi-value">R$ 819K</div><div class="kpi-sub">33,6% da receita</div></div>
+    <div class="kpi" style="--accent:#f59e0b"><div class="kpi-label">CMV Total</div><div class="kpi-value">R$ 872K</div><div class="kpi-sub">35,8% da receita</div></div>
+    <div class="kpi" style="--accent:#22c55e"><div class="kpi-label">Resultado Final</div><div class="kpi-value pos">+R$ 19K</div><div class="kpi-sub">Acumulado no período</div></div>
+    <div class="kpi" style="--accent:#a855f7"><div class="kpi-label">Folha + Pró-Labore</div><div class="kpi-value">R$ 545K</div><div class="kpi-sub">22,4% da receita</div></div>
+    <div class="kpi" style="--accent:#14b8a6"><div class="kpi-label">Melhor Mês</div><div class="kpi-value pos">Mai/26</div><div class="kpi-sub">Resultado: +R$ 48,8K</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Receita × Despesa Total × Resultado Final</div>
+    <div class="chart-wrap tall"><canvas id="c1"></canvas></div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Margem de Contribuição × Despesas Operacionais</div>
+      <div class="chart-wrap"><canvas id="c2"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Composição dos Custos</div>
+      <div class="chart-wrap"><canvas id="c3"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Resultado Final por Mês</div>
+    <div class="chart-wrap"><canvas id="c4"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Tabela Detalhada — Mensal</div>
+    <div style="overflow-x:auto">
+    <table><thead><tr>
+      <th>Mês</th><th>Receita Op.</th><th>CMV</th><th>Desp. Variáveis</th><th>Margem Contrib.</th>
+      <th>Folha+PL</th><th>Custo Ocup.</th><th>Desp. Gerais</th><th>Desp. Operac.</th><th>Resultado Final</th>
+    </tr></thead><tbody id="tbody1"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ABA 2: PERCENTUAIS ===================== -->
+<div id="page-percentuais" class="page">
+  <div class="page-header">
+    <h2>% por Categoria — Mês a Mês</h2>
+    <p>Percentual sobre a Receita Operacional · 2024 / 2025 / 2026</p>
+  </div>
+  <div class="filters">
+    <label>Ano:</label>
+    <select id="fAno" onchange="renderPct()">
+      <option value="all">Todos</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>
+    </select>
+    <label style="margin-left:8px">Destacar:</label>
+    <select id="fInd" onchange="renderPct()">
+      <option value="cmv">CMV</option><option value="dv">Desp. Variáveis</option><option value="mc">Margem Contrib.</option>
+      <option value="folha">Folha</option><option value="pl">Pró-labore</option><option value="oc">Custo Ocupação</option>
+      <option value="ger">Desp. Gerais</option><option value="res">Resultado Final</option>
+    </select>
+  </div>
+  <div style="display:flex;gap:14px;margin-bottom:12px;font-size:11px;color:var(--muted);flex-wrap:wrap">
+    <span style="display:flex;align-items:center;gap:5px"><span class="yr-badge" style="background:#a855f7"></span>2024</span>
+    <span style="display:flex;align-items:center;gap:5px"><span class="yr-badge" style="background:#3b82f6"></span>2025</span>
+    <span style="display:flex;align-items:center;gap:5px"><span class="yr-badge" style="background:#f59e0b"></span>2026</span>
+    <span style="margin-left:8px"><span class="pill" style="background:rgba(239,68,68,.2);color:#ef4444">XX%</span> crítico</span>
+    <span><span class="pill" style="background:rgba(245,158,11,.2);color:#f59e0b">XX%</span> atenção</span>
+    <span><span class="pill" style="background:rgba(34,197,94,.15);color:#22c55e">XX%</span> saudável</span>
+  </div>
+  <div class="card" style="overflow-x:auto;padding:14px">
+    <table id="tblPct">
+      <thead><tr>
+        <th style="text-align:left;position:sticky;left:0;background:#1a1d2e">Mês/Ano</th>
+        <th>Receita</th><th>CMV %</th><th>Desp. Var. %</th><th>Marg. Contrib. %</th>
+        <th>Folha %</th><th>Pró-labore %</th><th>Custo Ocup. %</th><th>Desp. Gerais %</th><th>Resultado %</th>
+      </tr></thead>
+      <tbody id="tbody2"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== ABA 3: VENDAS POR TIPO ===================== -->
+<div id="page-categorias" class="page">
+  <div class="page-header">
+    <h2>Vendas por Tipo de Evento</h2>
+    <p>Jan–Ago 2026 · Caixa (recebimentos)</p>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi" style="--accent:#3b82f6">
+      <div class="kpi-label">⚪🔵 Social</div>
+      <div class="kpi-value">R$ 1,27M</div>
+      <div class="kpi-sub">54,6% do total</div>
+    </div>
+    <div class="kpi" style="--accent:#f59e0b">
+      <div class="kpi-label">🟡 Formatura</div>
+      <div class="kpi-value">R$ 1,03M</div>
+      <div class="kpi-sub">44,3% do total</div>
+    </div>
+    <div class="kpi" style="--accent:#22c55e">
+      <div class="kpi-label">🟢 Locação</div>
+      <div class="kpi-value">R$ 26.400</div>
+      <div class="kpi-sub">1,1% do total</div>
+    </div>
+    <div class="kpi" style="--accent:#a855f7">
+      <div class="kpi-label">Total caixa</div>
+      <div class="kpi-value">R$ 2,33M</div>
+      <div class="kpi-sub">Jan–Ago 2026</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Receita por tipo — mês a mês (empilhado)</div>
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div><span style="font-size:12px;color:var(--muted)">Social</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div><span style="font-size:12px;color:var(--muted)">Formatura</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div><span style="font-size:12px;color:var(--muted)">Locação</span></div>
+    </div>
+    <div class="chart-wrap tall"><canvas id="c7"></canvas></div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Mix acumulado Jan–Ago</div>
+      <div class="chart-wrap"><canvas id="c8"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Social vs Formatura — evolução</div>
+      <div class="chart-wrap"><canvas id="c9"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Tabela — Breakdown mensal</div>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>Mês</th><th>⚪🔵 Social</th><th>% Social</th><th>🟡 Formatura</th><th>% Format.</th><th>🟢 Locação</th><th>Total</th>
+      </tr></thead>
+      <tbody id="tbody4"></tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ABA 4: VENDAS HISTÓRICAS ===================== -->
+<div id="page-vendas" class="page">
+  <div class="page-header">
+    <h2>Histórico de Vendas</h2>
+    <p>2015–2026 · Comparativo anual e mensal</p>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi" style="--accent:#22c55e"><div class="kpi-label">Melhor ano</div><div class="kpi-value pos">2025</div><div class="kpi-sub">R$ 3.386.270</div></div>
+    <div class="kpi" style="--accent:#3b82f6"><div class="kpi-label">Crescimento 2024→2025</div><div class="kpi-value pos">+56,8%</div><div class="kpi-sub">+R$ 1,23M no ano</div></div>
+    <div class="kpi" style="--accent:#a855f7"><div class="kpi-label">2026 Jan–Set (competência)</div><div class="kpi-value">R$ 2,57M</div><div class="kpi-sub">Em andamento</div></div>
+    <div class="kpi" style="--accent:#f59e0b"><div class="kpi-label">Ticket médio 2025</div><div class="kpi-value">R$ 10.853</div><div class="kpi-sub">312 eventos · +626% vs 2015</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Faturamento anual total</div>
+    <div class="chart-wrap tall"><canvas id="c5"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Vendas mensais — comparativo</div>
+    <div class="filters">
+      <label>Anos:</label>
+      <select id="va1" onchange="updateMensal()"></select>
+      <select id="va2" onchange="updateMensal()"></select>
+      <select id="va3" onchange="updateMensal()"></select>
+    </div>
+    <div class="chart-wrap tall"><canvas id="c6"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Resumo anual</div>
+    <div style="overflow-x:auto">
+    <table><thead><tr>
+      <th>Ano</th><th>Jan</th><th>Fev</th><th>Mar</th><th>Abr</th><th>Mai</th><th>Jun</th>
+      <th>Jul</th><th>Ago</th><th>Set</th><th>Out</th><th>Nov</th><th>Dez</th>
+      <th>Total</th><th>Eventos</th><th>Ticket médio</th>
+    </tr></thead><tbody id="tbody3"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ABA 5: CONTAS ===================== -->
+<div id="page-contas" class="page">
+  <div class="page-header">
+    <h2>Contas & Saldos</h2>
+    <p>Posição atual · Set/2026</p>
+  </div>
+  <div class="section-label" style="margin-top:0">Contas correntes</div>
+  <div class="contas-grid">
+    <div class="conta-card">
+      <div class="conta-icon" style="background:rgba(245,158,11,.15)">🏦</div>
+      <div class="conta-banco">Banco do Brasil</div>
+      <div class="conta-valor">R$ 20.000</div>
+      <div class="conta-tipo">Conta corrente</div>
+    </div>
+    <div class="conta-card">
+      <div class="conta-icon" style="background:rgba(59,130,246,.15)">🏦</div>
+      <div class="conta-banco">BTG</div>
+      <div class="conta-valor">R$ 33.000</div>
+      <div class="conta-tipo">Conta corrente</div>
+    </div>
+  </div>
+  <div class="section-label">Investimentos</div>
+  <div class="contas-grid">
+    <div class="conta-card">
+      <div class="conta-icon" style="background:rgba(34,197,94,.15)">📈</div>
+      <div class="conta-banco">Investimento 1</div>
+      <div class="conta-valor" style="color:var(--green)">R$ 110.000</div>
+      <div class="conta-tipo">1M aplicado</div>
+    </div>
+    <div class="conta-card">
+      <div class="conta-icon" style="background:rgba(34,197,94,.15)">📈</div>
+      <div class="conta-banco">Investimento 2</div>
+      <div class="conta-valor" style="color:var(--green)">R$ 330.000</div>
+      <div class="conta-tipo">1M aplicado</div>
+    </div>
+  </div>
+  <div class="total-box">
+    <div>
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Total geral</div>
+      <div style="font-size:28px;font-weight:700">R$ 493.000</div>
+    </div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap">
+      <div style="text-align:right"><div style="font-size:11px;color:var(--muted)">Contas correntes</div><div style="font-size:16px;font-weight:700">R$ 53.000</div></div>
+      <div style="text-align:right"><div style="font-size:11px;color:var(--muted)">Investimentos</div><div style="font-size:16px;font-weight:700;color:var(--green)">R$ 440.000</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---- UTILS ---- */
+function fmt(v){const n=v<0;const s=Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});return(n?'-':'')+'R$ '+s;}
+function fmtK(v){const a=Math.abs(v);if(a>=1000000)return(v<0?'-':'')+'R$ '+(Math.abs(v)/1000000).toFixed(1)+'M';if(a>=1000)return(v<0?'-':'')+'R$ '+(Math.abs(v)/1000).toFixed(0)+'K';return'R$ '+Math.round(v);}
+function cel(v,bold=false){const n=v<0;return`<td style="color:${n?'var(--red)':v>0?'inherit':'var(--muted)'};${bold?'font-weight:700':''}">${fmt(v)}</td>`;}
+const gc='#2a2d3e';
+Chart.defaults.color='#8892a4';Chart.defaults.borderColor='#2a2d3e';
+Chart.defaults.font.family="'Segoe UI',system-ui,sans-serif";Chart.defaults.font.size=11;
+
+/* ---- NAV ---- */
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='vendas'&&!chartsVendasInit){initVendas();}
+}
+
+/* ============ ABA 1: RESULTADOS ============ */
+const meses1=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set'];
+const dados=[
+  {mes:'01/2026',recOp:230816,cmv:113547.44,despVar:54217.08,margContr:63051.48,folha:13880,proLabore:59563.97,custOcup:11222.45,despGer:20843.96,despOp:105510.38,despTotal:275450.64,resFinal:-35634.64},
+  {mes:'02/2026',recOp:313515.60,cmv:90792.58,despVar:127521.53,margContr:95201.49,folha:16357,proLabore:44034.51,custOcup:14858.46,despGer:8433.82,despOp:83683.79,despTotal:304174.90,resFinal:9340.70},
+  {mes:'03/2026',recOp:364997.35,cmv:105456.19,despVar:143143.16,margContr:116398,folha:16552,proLabore:60710.55,custOcup:8583.46,despGer:11945.63,despOp:97791.64,despTotal:348929.37,resFinal:16067.98},
+  {mes:'04/2026',recOp:357482.39,cmv:144447.23,despVar:68694.80,margContr:144340.36,folha:20735,proLabore:48259.48,custOcup:9800,despGer:10593.59,despOp:89388.07,despTotal:309668.46,resFinal:47813.93},
+  {mes:'05/2026',recOp:363996.03,cmv:110383.52,despVar:124241.13,margContr:129371.38,folha:14115,proLabore:38677.75,custOcup:10300,despGer:12723.72,despOp:75816.47,despTotal:315179.48,resFinal:48816.55},
+  {mes:'06/2026',recOp:224333.83,cmv:95209.76,despVar:102160.94,margContr:26963.13,folha:10740,proLabore:54524.26,custOcup:10471.55,despGer:9927.41,despOp:85663.22,despTotal:285572.28,resFinal:-61238.45},
+  {mes:'07/2026',recOp:115348.28,cmv:40726.97,despVar:22431,margContr:52190.31,folha:11460,proLabore:17937.85,custOcup:10383.46,despGer:11597.27,despOp:51378.58,despTotal:120951.75,resFinal:-5603.47},
+  {mes:'08/2026',recOp:228184.61,cmv:75987.29,despVar:49126.25,margContr:103071.07,folha:13555,proLabore:50247.45,custOcup:10600,despGer:21561.86,despOp:95964.31,despTotal:229193.03,resFinal:-1008.42},
+  {mes:'09/2026',recOp:238174.35,cmv:95578.61,despVar:54580.49,margContr:88015.25,folha:14185,proLabore:39359.29,custOcup:9800,despGer:19761.18,despOp:83105.47,despTotal:237979.77,resFinal:194.58},
+];
+const tot={recOp:2436848.44,cmv:872129.59,despVar:746116.38,margContr:818602.47,folha:131579,proLabore:413315.11,custOcup:96019.38,despGer:127388.44,despOp:768301.93,resFinal:18748.76};
+const med={recOp:270760.94,cmv:96903.29,despVar:82901.82,margContr:90955.83,folha:14619.89,proLabore:45923.90,custOcup:10668.82,despGer:14154.27,despOp:85366.88,resFinal:2083.20};
+
+const tb1=document.getElementById('tbody1');
+dados.forEach(d=>{
+  tb1.innerHTML+=`<tr><td>${d.mes}</td>${cel(d.recOp)}${cel(d.cmv)}${cel(d.despVar)}${cel(d.margContr)}<td>${fmt(d.folha+d.proLabore)}</td>${cel(d.custOcup)}${cel(d.despGer)}${cel(d.despOp)}${cel(d.resFinal,true)}</tr>`;
+});
+tb1.innerHTML+=`<tr class="med"><td>Média</td>${cel(med.recOp)}${cel(med.cmv)}${cel(med.despVar)}${cel(med.margContr)}<td>${fmt(med.folha+med.proLabore)}</td>${cel(med.custOcup)}${cel(med.despGer)}${cel(med.despOp)}${cel(med.resFinal,true)}</tr>`;
+tb1.innerHTML+=`<tr class="tot"><td>Total</td>${cel(tot.recOp)}${cel(tot.cmv)}${cel(tot.despVar)}${cel(tot.margContr)}<td>${fmt(tot.folha+tot.proLabore)}</td>${cel(tot.custOcup)}${cel(tot.despGer)}${cel(tot.despOp)}${cel(tot.resFinal,true)}</tr>`;
+
+new Chart(document.getElementById('c1'),{type:'bar',data:{labels:meses1,datasets:[
+  {label:'Receita Op.',data:dados.map(d=>d.recOp),backgroundColor:'rgba(59,130,246,.7)',borderRadius:4,order:1},
+  {label:'Despesa Total',data:dados.map(d=>d.despTotal),backgroundColor:'rgba(239,68,68,.6)',borderRadius:4,order:2},
+  {label:'Resultado Final',data:dados.map(d=>d.resFinal),type:'line',borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.12)',borderWidth:2.5,pointRadius:5,pointBackgroundColor:dados.map(d=>d.resFinal>=0?'#22c55e':'#ef4444'),tension:.35,fill:true,order:0,yAxisID:'y2'}
+]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',labels:{padding:14,usePointStyle:true,pointStyleWidth:10}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`}}},scales:{x:{grid:{color:gc}},y:{grid:{color:gc},ticks:{callback:v=>fmtK(v)}},y2:{position:'right',grid:{drawOnChartArea:false},ticks:{callback:v=>fmtK(v),color:'#f59e0b'}}}}});
+
+new Chart(document.getElementById('c2'),{type:'line',data:{labels:meses1,datasets:[
+  {label:'Margem de Contribuição',data:dados.map(d=>d.margContr),borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,.12)',fill:true,tension:.35,borderWidth:2,pointRadius:4},
+  {label:'Despesas Operacionais',data:dados.map(d=>d.despOp),borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.1)',fill:true,tension:.35,borderWidth:2,pointRadius:4}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{padding:12,usePointStyle:true}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`}}},scales:{x:{grid:{color:gc}},y:{grid:{color:gc},ticks:{callback:v=>fmtK(v)}}}}});
+
+new Chart(document.getElementById('c3'),{type:'doughnut',data:{labels:['CMV','Desp. Variáveis','Folha','Pró-Labore','Custo Ocupação','Desp. Gerais'],datasets:[{data:[872129.59,746116.38,131579,413315.11,96019.38,127388.44],backgroundColor:['#3b82f6','#f59e0b','#a855f7','#14b8a6','#f97316','#6366f1'],borderColor:'#1a1d2e',borderWidth:2,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'right',labels:{padding:10,usePointStyle:true,font:{size:11}}},tooltip:{callbacks:{label:ctx=>{const t=ctx.dataset.data.reduce((a,b)=>a+b,0);return ` ${ctx.label}: ${fmt(ctx.parsed)} (${((ctx.parsed/t)*100).toFixed(1)}%)`;}}}}}});
+
+new Chart(document.getElementById('c4'),{type:'bar',data:{labels:meses1,datasets:[{label:'Resultado Final',data:dados.map(d=>d.resFinal),backgroundColor:dados.map(d=>d.resFinal>=0?'rgba(34,197,94,.75)':'rgba(239,68,68,.75)'),borderColor:dados.map(d=>d.resFinal>=0?'#22c55e':'#ef4444'),borderWidth:1.5,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` Resultado: ${fmt(ctx.parsed.y)}`}}},scales:{x:{grid:{color:gc}},y:{grid:{color:gc},ticks:{callback:v=>fmtK(v)}}}}});
+
+/* ============ ABA 2: PERCENTUAIS ============ */
+const pctRows=[
+  {m:'Mai',a:2024,rec:236926,cmv:34.6,dv:27.3,mc:38.1,folha:7.5,pl:23.1,oc:2.2,ger:6.9,res:-11.2},
+  {m:'Jun',a:2024,rec:82427,cmv:15.5,dv:47.2,mc:37.3,folha:9.4,pl:44.8,oc:6.3,ger:13.4,res:-39.3},
+  {m:'Jul',a:2024,rec:116405,cmv:15.5,dv:16.1,mc:68.4,folha:6.9,pl:24.8,oc:4.5,ger:9.7,res:18.7},
+  {m:'Ago',a:2024,rec:154077,cmv:22.5,dv:20.5,mc:57.0,folha:5.5,pl:18.6,oc:3.4,ger:8.3,res:17.6},
+  {m:'Set',a:2024,rec:168158,cmv:40.7,dv:24.2,mc:35.1,folha:5.9,pl:28.4,oc:3.1,ger:6.1,res:-9.7},
+  {m:'Out',a:2024,rec:195298,cmv:20.7,dv:13.1,mc:66.2,folha:5.5,pl:15.1,oc:2.7,ger:10.9,res:31.0},
+  {m:'Nov',a:2024,rec:341816,cmv:22.0,dv:22.7,mc:55.3,folha:3.6,pl:7.1,oc:1.5,ger:4.9,res:37.2},
+  {m:'Dez',a:2024,rec:345103,cmv:35.7,dv:35.4,mc:28.9,folha:3.7,pl:41.6,oc:1.5,ger:7.6,res:-26.2},
+  {m:'MÉDIA',a:2024,rec:205026,cmv:27.7,dv:25.6,mc:46.7,folha:5.3,pl:24.0,oc:2.5,ger:7.7,res:4.0,isAvg:true},
+  {m:'Jan',a:2025,rec:249743,cmv:24.3,dv:29.1,mc:46.6,folha:5.3,pl:17.8,oc:2.1,ger:8.0,res:17.4},
+  {m:'Fev',a:2025,rec:314081,cmv:38.5,dv:26.1,mc:35.4,folha:4.9,pl:26.4,oc:3.5,ger:5.6,res:-5.8},
+  {m:'Mar',a:2025,rec:260505,cmv:34.3,dv:33.6,mc:32.1,folha:2.7,pl:11.4,oc:4.2,ger:7.5,res:6.3},
+  {m:'Abr',a:2025,rec:190194,cmv:58.7,dv:43.1,mc:-1.8,folha:4.5,pl:16.2,oc:7.6,ger:6.8,res:-36.8},
+  {m:'Mai',a:2025,rec:303771,cmv:28.1,dv:31.5,mc:40.4,folha:3.9,pl:8.9,oc:3.9,ger:7.8,res:15.7},
+  {m:'Jun',a:2025,rec:288897,cmv:46.1,dv:21.6,mc:32.2,folha:4.6,pl:11.7,oc:4.8,ger:8.4,res:0.5},
+  {m:'Jul',a:2025,rec:235815,cmv:35.2,dv:25.7,mc:39.1,folha:6.9,pl:13.8,oc:5.1,ger:16.1,res:-3.5},
+  {m:'Ago',a:2025,rec:151921,cmv:11.3,dv:25.8,mc:62.9,folha:4.7,pl:12.1,oc:6.2,ger:12.4,res:23.4},
+  {m:'Set',a:2025,rec:43262,cmv:7.3,dv:15.7,mc:77.0,folha:10.7,pl:10.4,oc:0.0,ger:5.7,res:45.4},
+  {m:'Out',a:2025,rec:242302,cmv:37.9,dv:19.9,mc:42.2,folha:6.7,pl:7.7,oc:4.1,ger:4.5,res:17.7},
+  {m:'Nov',a:2025,rec:346577,cmv:22.7,dv:30.3,mc:47.0,folha:5.6,pl:32.3,oc:2.7,ger:4.2,res:1.1},
+  {m:'Dez',a:2025,rec:541729,cmv:30.4,dv:32.9,mc:36.7,folha:4.4,pl:24.1,oc:1.8,ger:4.8,res:1.5},
+  {m:'MÉDIA',a:2025,rec:264066,cmv:32.8,dv:29.0,mc:38.1,folha:5.0,pl:17.8,oc:3.7,ger:7.2,res:3.9,isAvg:true},
+  {m:'Jan',a:2026,rec:230816,cmv:49.2,dv:23.5,mc:27.3,folha:6.0,pl:25.8,oc:4.9,ger:9.0,res:-15.4},
+  {m:'Fev',a:2026,rec:313516,cmv:29.0,dv:40.7,mc:30.4,folha:5.2,pl:14.0,oc:4.7,ger:2.7,res:3.0},
+  {m:'Mar',a:2026,rec:364997,cmv:28.9,dv:39.2,mc:31.9,folha:4.5,pl:16.6,oc:2.4,ger:3.3,res:4.4},
+  {m:'Abr',a:2026,rec:357482,cmv:40.4,dv:19.2,mc:40.4,folha:5.8,pl:13.5,oc:2.7,ger:3.0,res:13.4},
+  {m:'Mai',a:2026,rec:363996,cmv:30.3,dv:34.1,mc:35.5,folha:3.9,pl:10.6,oc:2.8,ger:3.5,res:13.4},
+  {m:'Jun',a:2026,rec:224334,cmv:42.4,dv:45.5,mc:12.0,folha:4.8,pl:24.3,oc:4.7,ger:4.4,res:-27.3},
+  {m:'Jul',a:2026,rec:115348,cmv:35.3,dv:19.5,mc:45.3,folha:9.9,pl:15.6,oc:9.0,ger:10.1,res:-4.9},
+  {m:'Ago',a:2026,rec:228184,cmv:33.3,dv:21.5,mc:45.2,folha:5.9,pl:22.0,oc:4.6,ger:9.5,res:-0.4},
+  {m:'Set',a:2026,rec:238174,cmv:40.1,dv:22.9,mc:37.0,folha:6.0,pl:16.5,oc:4.1,ger:8.3,res:0.1},
+  {m:'MÉDIA',a:2026,rec:270761,cmv:35.8,dv:30.6,mc:33.6,folha:5.4,pl:17.0,oc:3.9,ger:5.2,res:0.8,isAvg:true},
+];
+const yco={2024:'#a855f7',2025:'#3b82f6',2026:'#f59e0b'};
+const ycl={2024:'tr-y24',2025:'tr-y25',2026:'tr-y26'};
+const pkeys=['cmv','dv','mc','folha','pl','oc','ger','res'];
+
+function ppill(v,key){
+  if(v==null)return'<span style="color:#555">—</span>';
+  const inv=key==='mc'||key==='res';
+  let bg,col;
+  if(inv){if(v>=40){bg='rgba(34,197,94,.15)';col='#22c55e';}else if(v>=15){bg='rgba(245,158,11,.2)';col='#f59e0b';}else{bg='rgba(239,68,68,.2)';col='#ef4444';}}
+  else{if(v<25){bg='rgba(34,197,94,.15)';col='#22c55e';}else if(v<40){bg='rgba(245,158,11,.2)';col='#f59e0b';}else{bg='rgba(239,68,68,.2)';col='#ef4444';}}
+  const sg=(key==='res'&&v>0)?'+':'';
+  return`<span class="pill" style="background:${bg};color:${col}">${sg}${v.toFixed(1)}%</span>`;
+}
+
+function renderPct(){
+  const fA=document.getElementById('fAno').value;
+  const fI=document.getElementById('fInd').value;
+  const rows=pctRows.filter(r=>fA==='all'||r.a==fA);
+  let html='';
+  rows.forEach(r=>{
+    const yc=ycl[r.a];const co=yco[r.a];
+    const avgC=r.isAvg?'avg':'';
+    const lbl=r.isAvg?`<span class="yr-badge" style="background:${co}"></span><em>Média ${r.a}</em>`:`<span class="yr-badge" style="background:${co}"></span><strong>${r.m}</strong><span class="yr">/${r.a}</span>`;
+    const recTxt=r.isAvg?`<span style="font-size:11px;color:${co}">~R$ ${(r.rec/1000).toFixed(0)}K/mês</span>`:`<span style="font-size:11px;color:var(--muted)">R$ ${(r.rec/1000).toFixed(0)}K</span>`;
+    html+=`<tr class="${yc} ${avgC}"><td style="position:sticky;left:0">${lbl}</td><td>${recTxt}</td>${pkeys.map(k=>`<td${k===fI?' style="outline:1px solid rgba(255,255,255,.18)"':''}>${ppill(r[k],k)}</td>`).join('')}</tr>`;
+  });
+  document.getElementById('tbody2').innerHTML=html;
+}
+renderPct();
+
+/* ============ ABA 3: CATEGORIAS ============ */
+const mesesCat=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago'];
+const catData={
+  social:   [110000,172000,138972.5,170010,192050,116050,146290,227368],
+  formatura:[228664,235000,233682,25800,253800,22200,0,34780],
+  locacao:  [0,0,0,21000,0,0,0,5400],
+};
+const totaisCat=mesesCat.map((_,i)=>catData.social[i]+catData.formatura[i]+catData.locacao[i]);
+
+// Tabela categorias
+const tb4=document.getElementById('tbody4');
+mesesCat.forEach((m,i)=>{
+  const s=catData.social[i],f=catData.formatura[i],l=catData.locacao[i],t=totaisCat[i];
+  tb4.innerHTML+=`<tr>
+    <td>${m}/26</td>
+    <td>${fmt(s)}</td><td style="color:var(--blue)">${(s/t*100).toFixed(1)}%</td>
+    <td>${f>0?fmt(f):'—'}</td><td style="color:var(--yellow)">${f>0?(f/t*100).toFixed(1)+'%':'—'}</td>
+    <td>${l>0?fmt(l):'—'}</td>
+    <td style="font-weight:700">${fmt(t)}</td>
+  </tr>`;
+});
+const totS=catData.social.reduce((a,b)=>a+b,0);
+const totF=catData.formatura.reduce((a,b)=>a+b,0);
+const totL=catData.locacao.reduce((a,b)=>a+b,0);
+const totT=totS+totF+totL;
+tb4.innerHTML+=`<tr class="tot">
+  <td>TOTAL</td>
+  <td>${fmt(totS)}</td><td style="color:var(--blue)">${(totS/totT*100).toFixed(1)}%</td>
+  <td>${fmt(totF)}</td><td style="color:var(--yellow)">${(totF/totT*100).toFixed(1)}%</td>
+  <td>${fmt(totL)}</td>
+  <td style="font-weight:700">${fmt(totT)}</td>
+</tr>`;
+
+// Chart 7 — stacked bar
+new Chart(document.getElementById('c7'),{type:'bar',data:{labels:mesesCat,datasets:[
+  {label:'Social',data:catData.social,backgroundColor:'rgba(59,130,246,.8)',borderRadius:0,stack:'s'},
+  {label:'Formatura',data:catData.formatura,backgroundColor:'rgba(245,158,11,.85)',borderRadius:0,stack:'s'},
+  {label:'Locação',data:catData.locacao,backgroundColor:'rgba(34,197,94,.8)',borderRadius:4,stack:'s'},
+]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`}}},scales:{x:{grid:{color:gc},stacked:true},y:{grid:{color:gc},stacked:true,ticks:{callback:v=>fmtK(v)}}}}});
+
+// Chart 8 — doughnut mix
+new Chart(document.getElementById('c8'),{type:'doughnut',data:{labels:['Social','Formatura','Locação'],datasets:[{data:[totS,totF,totL],backgroundColor:['#3b82f6','#f59e0b','#22c55e'],borderColor:'#1a1d2e',borderWidth:2,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{padding:12,usePointStyle:true}},tooltip:{callbacks:{label:ctx=>{const t=ctx.dataset.data.reduce((a,b)=>a+b,0);return ` ${ctx.label}: ${fmt(ctx.parsed)} (${(ctx.parsed/t*100).toFixed(1)}%)`;}}}}}});
+
+// Chart 9 — line social vs formatura
+new Chart(document.getElementById('c9'),{type:'line',data:{labels:mesesCat,datasets:[
+  {label:'Social',data:catData.social,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.1)',fill:true,tension:.35,borderWidth:2,pointRadius:4},
+  {label:'Formatura',data:catData.formatura,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.1)',fill:true,tension:.35,borderWidth:2,pointRadius:4},
+]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',labels:{padding:12,usePointStyle:true}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`}}},scales:{x:{grid:{color:gc}},y:{grid:{color:gc},ticks:{callback:v=>fmtK(v)}}}}});
+
+/* ============ ABA 4: VENDAS ============ */
+const anosV=[2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026];
+const mesesV=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const vendasV={
+  2015:[49656,72211,36125,38940,31063,39218,46594,33961,35504,38280,30888,50948],
+  2016:[62231,72707,71148,47566,43867,55440,35655,56766,27875,50150,78894,38298],
+  2017:[46185,71439,51416,54510,76616,53264,52162.5,49818,51587,82918,61644,52083.25],
+  2018:[48045,114494,64482,51389,60544,53240,55516,98093,38860,47642,121447,39374],
+  2019:[69707,97718,105945,45306,77296,48770,57390,56214,50253,60160,79500,60718],
+  2020:[69707,94624,104963,27240,10890,22375,22170,40915,36731,42430,73033,32770],
+  2021:[33202,54752,20345,30840,23980,88206,70184,104547,78414,115967,289332,69588],
+  2022:[116206,119627,166833,165520,106118,160860,158120,143292,99447,130040,107730,97130],
+  2023:[117303,95205,130530,185073,131837,91710,118710,178406,124720,131794,288199,225910],
+  2024:[159305,109000,117838,228724,228049,102175,171503,103675,150760,160830,329636,297623],
+  2025:[293239,401077,299385,156303,272741,286015,292422,105040,192622,168100,457838,461488],
+  2026:[338664,407000,372655,216810,445850,138250,146290,267548,238174,0,0,0],
+};
+const totaisV={2015:503418,2016:637697,2017:703642.75,2018:793126,2019:808977,2020:577848,2021:979357,2022:1570923,2023:1819397,2024:2159118,2025:3386270,2026:2571241};
+const eventosV={2015:337,2016:331,2017:248,2018:277,2019:292,2020:102,2021:387,2022:357,2023:326,2024:320,2025:312,2026:0};
+const ticketsV={2015:1493.82,2016:1926.57,2017:2837.26,2018:2863.70,2019:2770.46,2020:5665.17,2021:2530.63,2022:4400.34,2023:5580.97,2024:6747.24,2025:10853,2026:0};
+const covidY=[2020,2021];
+const yColV=['#534AB7','#3b82f6','#1baf7a','#14b8a6','#22c55e','#f59e0b','#f97316','#a855f7','#e34948','#6366f1','#ec4899','#38bdf8'];
+
+let chartsVendasInit=false;
+let chartMensalV=null;
+
+function initVendas(){
+  chartsVendasInit=true;
+  new Chart(document.getElementById('c5'),{type:'bar',data:{labels:anosV,datasets:[{label:'Faturamento',data:anosV.map(a=>totaisV[a]),backgroundColor:anosV.map(a=>a===2026?'rgba(56,189,248,.75)':covidY.includes(a)?'rgba(245,158,11,.7)':'rgba(59,130,246,.75)'),borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const a=anosV[ctx.dataIndex];return a===2026?` R$ ${Math.round(ctx.parsed.y).toLocaleString('pt-BR')} (Jan–Set)`:` R$ ${Math.round(ctx.parsed.y).toLocaleString('pt-BR')}`;}}}},scales:{x:{grid:{color:gc}},y:{grid:{color:gc},ticks:{callback:v=>fmtK(v)}}}}});
+
+  const s1=document.getElementById('va1'),s2=document.getElementById('va2'),s3=document.getElementById('va3');
+  anosV.forEach(a=>{[s1,s2,s3].forEach(s=>{const o=document.createElement('option');o.value=a;o.textContent=a+(covidY.includes(a)?' (COVID)':a===2026?' (parcial)':'');s.appendChild(o);});});
+  s1.value=2024;s2.value=2025;s3.value=2026;
+  updateMensal();
+
+  const tb3=document.getElementById('tbody3');
+  anosV.forEach(a=>{
+    const isCovid=covidY.includes(a),isBest=a===2025,isCur=a===2026;
+    const tr=document.createElement('tr');
+    if(isCovid)tr.style.color='var(--yellow)';if(isBest)tr.style.color='var(--green)';if(isCur)tr.style.color='var(--blue)';
+    const tag=isCovid?'<span class="tag tag-covid">COVID</span>':isBest?'<span class="tag tag-rec">Recorde</span>':isCur?'<span class="tag tag-cur">Atual</span>':'';
+    let h=`<td>${a}${tag}</td>`;
+    vendasV[a].forEach((v,i)=>{h+=`<td>${v>0?Math.round(v).toLocaleString('pt-BR'):a===2026&&i>=9?'—':'0'}</td>`;});
+    h+=`<td style="font-weight:700">${Math.round(totaisV[a]).toLocaleString('pt-BR')}${isCur?' *':''}</td>`;
+    h+=`<td>${eventosV[a]||'—'}</td>`;
+    h+=`<td>${ticketsV[a]?'R$ '+ticketsV[a].toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</td>`;
+    tr.innerHTML=h;tb3.appendChild(tr);
+  });
+  const note=document.createElement('tr');
+  note.innerHTML=`<td colspan="16" style="color:var(--muted);font-size:11px;padding:6px 9px">* 2026: Jan–Set apenas (competência) — Out em andamento</td>`;
+  tb3.appendChild(note);
+}
+
+function updateMensal(){
+  const anos3=[+document.getElementById('va1').value,+document.getElementById('va2').value,+document.getElementById('va3').value];
+  const ds=anos3.map((a)=>({
+    label:String(a)+(covidY.includes(a)?' (COVID)':a===2026?' (parcial)':''),
+    data:vendasV[a],
+    borderColor:yColV[anosV.indexOf(a)],
+    backgroundColor:yColV[anosV.indexOf(a)]+'22',
+    borderWidth:2,pointRadius:4,tension:.3,fill:false,
+    segment:{borderDash:ctx=>a===2026&&ctx.p1DataIndex>=8?[4,4]:undefined}
+  }));
+  if(chartMensalV)chartMensalV.destroy();
+  chartMensalV=new Chart(document.getElementById('c6'),{type:'line',data:{labels:mesesV,datasets:ds},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',labels:{padding:14,usePointStyle:true,pointStyleWidth:10}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: R$ ${Math.round(ctx.parsed.y).toLocaleString('pt-BR')}`}}},scales:{x:{grid:{color:gc}},y:{grid:{color:gc},ticks:{callback:v=>fmtK(v)}}}}});
+}
+</script>
+</body>
+</html>
